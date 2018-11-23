@@ -30,8 +30,8 @@ func main() {
 
 	// run loop forever (or until ctrl-c)
 	for {
-		// will listen for message to process ending in newline (\n)
-		message, _ := bufio.NewReader(conn).ReadString('\n') // todo: change deliminater to something else
+		// will listen for message to process ending in newline (\x00)
+		message, _ := bufio.NewReader(conn).ReadString('\x00')
 		// output message received
 		if len(message) > 0 {
 			byt := decrypt([]byte(message[:len(message)-1]), "password")
@@ -41,7 +41,7 @@ func main() {
 			fmt.Println("Message Received:", dat["message"].(string))
 
 			outgoingMessage := &jMessage{
-				Msg: dat["message"].(string), // remove \n from message
+				Msg: dat["message"].(string),
 			}
 			outBytes, err := json.Marshal(outgoingMessage)
 			if err != nil {
@@ -49,7 +49,7 @@ func main() {
 			}
 			sendText := string(encrypt([]byte(outBytes), "password"))
 			// send new string back to client
-			conn.Write([]byte(sendText + "\n"))
+			conn.Write([]byte(sendText + "\x00"))
 		} else {
 			time.Sleep(time.Millisecond * 5)
 		}
